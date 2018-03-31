@@ -5,6 +5,8 @@
 <script src="http://cdn.bootcss.com/ace/1.2.4/ext-language_tools.js"></script>
 <script src="http://cdn.bootcss.com/ace/1.2.4/ext-old_ie.js"></script>
 <script src="http://cdn.bootcss.com/ace/1.2.4/theme-monokai.js"></script> 
+<link href="/static/dist/css/bootstrap-multiselect.css" rel="stylesheet">
+<script src="/static/dist/js/bootstrap-multiselect.js"></script>
 <style type="text/css">
 	#compile-editor {
 		/* position: absolute; */
@@ -50,7 +52,7 @@
                                         {% endif %}
                                         <button type="reset" class="btn btn-default">撤销</button>
                                         {% if playbook.playbook_type == 1 %}
-                                        <button type="button" class="btn btn-default" onclick="oBtAnsiblePlaybookOnline(this)">添加</button>
+                                        <button type="button" class="btn btn-default" onclick="oBtAnsiblePlaybookOnline(this)">修改</button>
                                         {% else %}
                                         <button type="submit" class="btn btn-default">修改</button>
                                         {% endif %}
@@ -74,7 +76,11 @@
 													{% elif playbook.playbook_server_model == 'custom' %}
 														<option value="service" name="server_model">业务类型</option>
 														<option value="group" name="server_model">使用部门</option>
-														<option value="custom" selected="selected" name="server_model">自定义</option> 																
+														<option value="custom" selected="selected" name="server_model">自定义</option> 		
+													{% else %}
+														<option value="service" name="server_model">业务类型</option>
+														<option value="group" name="server_model">使用部门</option>
+														<option value="custom" name="server_model">自定义</option> 																												
 													{% endif %}
 												</select>
                                         </div> 
@@ -122,7 +128,7 @@
                                         </div>                                         
                                         	<div id="custom_server" class="form-group" {% if playbook.playbook_server_model != 'custom'  %}style="display:none;"{% endif %}>                                       
                                             <label>勾选目标服务器<i class="fa fa-info-circle" data-toggle="tooltip"  title="自定选择服务器"></i></label>
-                                            <select multiple class="selectpicker" data-live-search="true" name="playbook_server" id="playbook_server">
+                                            <select multiple  name="playbook_server" id="playbook_server">
                                             	{% for ds in serverList %}
                                             			{% if ds.count == 1 %}
                                             				<option name="playbook_server" value="{{ds.id}}" selected="selected">{{ds.ip}}</option>
@@ -186,6 +192,14 @@
 	<script src="http://cdn.bootcss.com/ace/1.2.4/theme-monokai.js"></script> 
 <script type="text/javascript">
 $(function () { $("[data-toggle='tooltip']").tooltip(); });
+$(document).ready(function() {
+    $('#playbook_server').multiselect({
+        enableClickableOptGroups: true,
+        enableCollapsibleOptGroups: true,
+        includeSelectAllOption: true,
+       	enableFiltering: true,            
+    });
+});
 {% if playbook.playbook_type == 1 %}
 	$(function () {
 		var editor = ace.edit("compile-editor");
@@ -242,7 +256,7 @@ $(function () { $("[data-toggle='tooltip']").tooltip(); });
 		      success:function(response){	
 	                if (response["code"]=="200"){ 
 	                	window.wxc.xcConfirm(response["msg"], window.wxc.xcConfirm.typeEnum.success);
-	                	window.location.reload();
+/* 	                	window.location.reload(); */
 	                }
 		        	else{
 		        		window.wxc.xcConfirm("添加失败：" + response["msg"], window.wxc.xcConfirm.typeEnum.error);
