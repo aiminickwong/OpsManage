@@ -16,12 +16,13 @@ import os
 import djcelery
 from celery import  platforms
 from kombu import Queue,Exchange
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 ''' celery config '''
 djcelery.setup_loader()
-BROKER_URL = 'redis://192.168.88.233:6379/4'
+BROKER_URL = 'redis://192.168.88.233:6379/4' 
 CELERY_RESULT_BACKEND = 'djcelery.backends.database.DatabaseBackend'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER='pickle'
@@ -40,18 +41,18 @@ CELERY_IMPORTS = ("OpsManage.tasks.assets","OpsManage.tasks.ansible",
                   "OpsManage.tasks.sql","OpsManage.tasks.sched")
 CELERY_QUEUES = (
     Queue('default',Exchange('default'),routing_key='default'),
-    Queue('ansible',Exchange('ansible'),routing_key='ansible_#'),
+    Queue('ansible',Exchange('ansible'),routing_key='ansible'),
 )
 CELERY_ROUTES = {
     'OpsManage.tasks.sql.*':{'queue':'default','routing_key':'default'},
     'OpsManage.tasks.assets.*':{'queue':'default','routing_key':'default'},
     'OpsManage.tasks.cron.*':{'queue':'default','routing_key':'default'},
     'OpsManage.tasks.sched.*':{'queue':'default','routing_key':'default'},
-    'OpsManage.tasks.ansible.AnsibleScripts':{'queue':'ansible','routing_key':'ansible_scripts'},
-    'OpsManage.tasks.ansible.AnsiblePlayBook':{'queue':'ansible','routing_key':'ansible_playbook'},
+    'OpsManage.tasks.ansible.AnsibleScripts':{'queue':'ansible','routing_key':'ansible'},
+    'OpsManage.tasks.ansible.AnsiblePlayBook':{'queue':'ansible','routing_key':'ansible'},
 }
 CELERY_DEFAULT_QUEUE = 'default'
-CELERY_DEFAULT_EXCHANGE_TYPE = 'direct'
+CELERY_DEFAULT_EXCHANGE_TYPE = 'topic'
 CELERY_DEFAULT_ROUTING_KEY = 'default'
 
 
@@ -75,12 +76,12 @@ CHANNEL_LAYERS = {
     "default": {
        "BACKEND": "asgi_redis.RedisChannelLayer",  # use redis backend
        "CONFIG": {
-           "hosts": [("localhost", 6379)],  # set redis address
-           "channel_capacity": {
+            "hosts": [("localhost", 6379)],  #无密码方式
+            "channel_capacity": {
                                    "http.request": 1000,
                                    "websocket.send*": 10000,
                                 },
-           "capacity": 10000,           
+            "capacity": 10000,           
            },
        "ROUTING": "OpsManage.routing.channel_routing",  # load routing from our routing.py file
        },
@@ -101,6 +102,10 @@ INSTALLED_APPS = (
     'channels',
     'elfinder',
     'storages',
+    'wiki',
+    'orders',
+    'api',
+    'filemanage',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -181,6 +186,7 @@ STATICFILES_DIRS = (
 
 MEDIA_ROOT = os.path.join(BASE_DIR,'upload/')
 MEDIA_URL = '/upload/'
+
 SFTP_CONF = {
              'port':22,
              'username':'root',
@@ -188,4 +194,7 @@ SFTP_CONF = {
              'timeout':30
              }  #修改成能sftp登陆OpsManage的账户
 
+WORKSPACES = '/var/lib/opsmanage/workspaces/' 
+
 LOGIN_URL = '/login'
+
