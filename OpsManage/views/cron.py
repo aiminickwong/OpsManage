@@ -60,7 +60,7 @@ def cron_add(request):
                 else:resource = [{"ip": server.ip, "port": int(server.port),"username": server.username,"password": server.passwd}]              
                 ANS = ANSRunner(resource)
                 if cron.cron_script:
-                    src = os.getcwd() + '/' + str(cron.cron_script)
+                    src = os.getcwd() + '/upload/' + str(cron.cron_script)
                     file_args = """src={src} dest={dest} owner={user} group={user} mode=755""".format(src=src,dest=cron.cron_script_path,user=cron.cron_user)
                     ANS.run_model(host_list=sList,module_name="copy",module_args=file_args)        
                     result = ANS.handle_model_data(ANS.get_model_result(), 'copy',file_args) 
@@ -92,9 +92,8 @@ def cron_add(request):
         return HttpResponseRedirect('/cron_add')
 
 @login_required()
-@permission_required('OpsManage.can_read_config',login_url='/noperm/') 
+@permission_required('OpsManage.can_read_cron_config',login_url='/noperm/') 
 def cron_list(request,page):
-#     cronList = Cron_Config.objects.select_related().all()
     allCronList = Cron_Config.objects.select_related().all()[0:1000]
     paginator = Paginator(allCronList, 25)          
     try:
@@ -152,7 +151,7 @@ def cron_mod(request,cid):
             if  cron.cron_status == 0:ANS.run_model(host_list=sList,module_name="cron",module_args="""name={name} state=absent""".format(name=cron.cron_name))       
             else:
                 if cron.cron_script:
-                    src = os.getcwd() + '/' + str(cron.cron_script)
+                    src = os.getcwd() + '/upload/' + str(cron.cron_script)
                     file_args = """src={src} dest={dest} owner={user} group={user} mode=755""".format(src=src,dest=cron.cron_script_path,user=cron.cron_user)
                     ANS.run_model(host_list=sList,module_name="copy",module_args=file_args)  
                 cron_args = """name={name} minute='{minute}' hour='{hour}' day='{day}'
@@ -167,7 +166,7 @@ def cron_mod(request,cid):
                                   )                     
         return HttpResponseRedirect('/cron_mod/{id}/'.format(id=cid))
     
-    elif request.method == "DELETE":      
+    elif request.method == "DELETE" and request.user.has_perm('OpsManage.can_delete_cron_config'):     
         try:
             recordCron.delay(cron_user=str(request.user),cron_id=cid,cron_name=cron.cron_name,cron_content="删除计划任务",cron_server=cron.cron_server.ip)
             sList = [cron.cron_server.ip]
@@ -246,5 +245,4 @@ def cron_log(request,page):
             cronList = paginator.page(1)
         except EmptyPage:
             cronList = paginator.page(paginator.num_pages)          
-        return render(request,'cron/cron_log.html',{"user":request.user,"cronList":cronList},
-                                  )
+        return render(request,'cron/cron_log.html',{"user":request.user,"cronList":cronList},)
